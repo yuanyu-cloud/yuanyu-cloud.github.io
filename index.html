@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>溫泉池管理系統</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 背景設置：加上背景圖片 */
+        body {
+            font-family: 'Pacifico', cursive;
+            margin: 0;
+            padding: 0;
+            background-color: #ACD6FF; /* 背景顏色 */
+            background-image: url('https://img.muryou-aigazou.com/20241228/anime_v2/VEUhiFUVvZ.jpg'); /* 新的背景圖片 */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #467500; /* 主要文字顏色 */
+            position: relative;
+            line-height: 1.6;
+        }
+
+        /* 視窗背景透明，讓背景顏色不會太強烈 */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.6); /* 半透明白色遮罩 */
+            z-index: -1;
+        }
+
+        /* 標題設置 */
+        h1 {
+            font-family: 'Pacifico', cursive;
+            text-align: center;
+            color: #467500;
+            font-size: 60px; /* 增大字體 */
+            margin-top: 60px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 訊息框 */
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #dff0d8;
+            border: 1px solid #d0e9c6;
+            color: #3c763d;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 20px; /* 增大字體 */
+        }
+
+        /* 按鈕設計 */
+        .btn {
+            padding: 14px 35px;
+            background: linear-gradient(to right, #56ab2f, #a8e063); /* 漸變綠色 */
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 20px; /* 增大字體 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 15px;
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2); /* 更柔和的陰影 */
+        }
+
+        .btn:hover {
+            background: linear-gradient(to right, #a8e063, #56ab2f);
+            transform: translateY(-4px);
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+        }
+
+        /* 表格設置 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            background-color: rgba(255, 255, 255, 0.9); /* 透明背景 */
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 20px 25px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            font-size: 20px; /* 增大字體 */
+        }
+
+        th {
+            background-color: #467500;
+            color: white;
+            font-weight: bold;
+        }
+
+        td {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover td {
+            background-color: #f1f1f1;
+        }
+
+        /* 訂單狀態字體大小增大 */
+        #ordersList {
+            font-size: 22px; /* 增大字體 */
+            text-align: center;
+        }
+
+        /* 響應式設計 */
+        @media screen and (max-width: 768px) {
+            .btn {
+                width: 100%;
+                font-size: 18px;
+            }
+            table, th, td {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 視窗遮罩 -->
+    <div class="overlay"></div>
+
+    <h1>溫泉池管理系統</h1>
+
+    <div style="text-align:center;">
+        <button class="btn" onclick="showPoolStatus()">顯示池區狀況</button>
+        <button class="btn" onclick="showOrderForm()">安排遊客至溫泉池</button>
+        <button class="btn" onclick="showCompletedOrders()">顯示訂單狀態</button>
+    </div>
+
+    <div id="statusMessage" class="message" style="display:none;"></div>
+
+    <div id="poolStatus" style="display:none;">
+        <h2 style="text-align: center; font-size: 35px; margin-top: 40px;">溫泉池狀況</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>溫泉池編號</th>
+                    <th>類型</th>
+                    <th>可容納</th>
+                    <th>當前人數</th>
+                    <th>水溫</th>
+                </tr>
+            </thead>
+            <tbody id="poolList"></tbody>
+        </table>
+    </div>
+
+    <div id="orderForm" style="display:none;">
+        <h2 style="text-align: center; font-size: 35px; margin-top: 40px;">安排遊客至溫泉池</h2>
+        <div style="text-align: center; margin-top: 20px;">
+            <label for="groupSize" style="font-size: 22px;">請輸入您的團體人數：</label>
+            <input type="number" id="groupSize" name="groupSize" style="padding: 12px; font-size: 18px; border-radius: 8px; border: 1px solid #ccc; margin: 10px;">
+            <button class="btn" onclick="assignPool()">提交訂單</button>
+        </div>
+    </div>
+
+    <div id="completedOrders" style="display:none;">
+        <h2 style="text-align: center; font-size: 35px; margin-top: 40px;">訂單狀態</h2>
+        <ul id="ordersList" style="list-style-type: none; padding-left: 0; text-align: center;"></ul>
+    </div>
+
+    <script>
+        let pools = [
+            { id: 1, type: '室外大型池', capacity: 25, current: 0, temperature: 40 },
+            { id: 2, type: '室內大型池', capacity: 30, current: 0, temperature: 42 },
+            { id: 3, type: '親子池', capacity: 15, current: 0, temperature: 38 },
+            { id: 4, type: '高溫池', capacity: 20, current: 0, temperature: 45 },
+            { id: 5, type: '冷熱交替池', capacity: 10, current: 0, temperature: 35 },
+            { id: 6, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 7, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 8, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 9, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 10, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 11, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 12, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 13, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 14, type: '私人池', capacity: 5, current: 0, temperature: 41 },
+            { id: 15, type: '私人池', capacity: 5, current: 0, temperature: 41 }
+        ];
+
+        let orders = [];
+        let orderId = 1;
+
+        function showPoolStatus() {
+            document.getElementById("poolStatus").style.display = "block";
+            document.getElementById("orderForm").style.display = "none";
+            document.getElementById("completedOrders").style.display = "none";
+            let poolList = document.getElementById("poolList");
+            poolList.innerHTML = "";
+
+            pools.forEach(pool => {
+                let row = `<tr>
+                            <td>${pool.id}</td>
+                            <td>${pool.type}</td>
+                            <td>${pool.capacity}</td>
+                            <td>${pool.current}</td>
+                            <td>${pool.temperature} °C</td>
+                           </tr>`;
+                poolList.innerHTML += row;
+            });
+        }
+
+        function showOrderForm() {
+            document.getElementById("orderForm").style.display = "block";
+            document.getElementById("poolStatus").style.display = "none";
+            document.getElementById("completedOrders").style.display = "none";
+        }
+
+        function assignPool() {
+            const groupSize = parseInt(document.getElementById("groupSize").value);
+            const availablePools = pools.filter(pool => (pool.capacity - pool.current >= groupSize));
+
+            if (availablePools.length === 0) {
+                showStatusMessage("沒有溫泉池可以容納這麼多人。", true);
+                return;
+            }
+
+            let poolIds = availablePools.map(pool => pool.id).join(", ");
+            const poolChoice = prompt(`可容納 ${groupSize} 人的溫泉池有：${poolIds}\n請選擇您要前往的溫泉池編號:`);
+            const selectedPool = pools.find(pool => pool.id == poolChoice);
+
+            if (selectedPool) {
+                selectedPool.current += groupSize;
+                orders.push({ orderId: orderId, groupSize: groupSize, isCompleted: true });
+                showStatusMessage(`訂單 ${orderId} 完成。`, false);
+                orderId++;
+            } else {
+                if (confirm("選擇的溫泉池已滿，無法容納這麼多人。若要重新選擇溫泉池，請點擊確定，若要取消訂單，請點擊取消。")) {
+                    assignPool();
+                } else {
+                    orders.push({ orderId: orderId, groupSize: groupSize, isCompleted: false });
+                    showStatusMessage(`訂單 ${orderId} 未完成。`, false);
+                    orderId++;
+                }
+            }
+        }
+
+        function showCompletedOrders() {
+            document.getElementById("completedOrders").style.display = "block";
+            document.getElementById("poolStatus").style.display = "none";
+            document.getElementById("orderForm").style.display = "none";
+            let ordersList = document.getElementById("ordersList");
+            ordersList.innerHTML = "";
+
+            orders.forEach(order => {
+                let status = order.isCompleted ? "完成" : "未完成";
+                ordersList.innerHTML += `<li>訂單 ${order.orderId}: ${order.groupSize} 人 - ${status}</li>`;
+            });
+        }
+
+        function showStatusMessage(message, isError) {
+            let statusMessage = document.getElementById("statusMessage");
+            statusMessage.style.display = "block";
+            statusMessage.textContent = message;
+            statusMessage.style.backgroundColor = isError ? "#f2dede" : "#dff0d8";
+            statusMessage.style.color = isError ? "#a94442" : "#3c763d";
+        }
+    </script>
+</body>
+</html>
